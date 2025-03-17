@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackSum - News Summarizer</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --hover-bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .topic-selector {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        select {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 0.5rem;
+            background-color: var(--card-bg);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        select:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .sentiment-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--card-bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .news-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .news-item {
+            padding: 1.5rem;
+            background-color: var(--card-bg);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .news-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .sentiment-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .news-summary {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .news-sentiment {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+
+        .popover {
+            position: absolute;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 300px;
+            display: none;
+        }
+
+        .news-item:hover .popover {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HackSum</h1>
+            <p>Real-time news summaries powered by Grok AI</p>
+        </header>
+
+        <div class="topic-selector">
+            <select id="topicSelect">
+                <option value="">Select a topic</option>
+                <option value="crypto">Cryptocurrency</option>
+                <option value="defi">DeFi</option>
+                <option value="ai">Artificial Intelligence</option>
+                <option value="tech">Technology</option>
+                <option value="startup">Startups</option>
+            </select>
+        </div>
+
+        <div class="sentiment-header" id="overallSentiment">
+            Select a topic to view news summaries
+        </div>
+
+        <div class="news-container" id="newsContainer">
+            <!-- News items will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        const topicSelect = document.getElementById('topicSelect');
+        const newsContainer = document.getElementById('newsContainer');
+        const overallSentiment = document.getElementById('overallSentiment');
+
+        function getSentimentColor(sentiment) {
+            // Convert sentiment from -1:1 to 0:120 (hue value, red to green)
+            const hue = ((sentiment + 1) * 60);
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+
+        function formatSentiment(sentiment) {
+            return (sentiment * 100).toFixed(1) + '%';
+        }
+
+        function calculateOverallSentiment(news) {
+            if (!news.length) return 0;
+            const sum = news.reduce((acc, item) => acc + item.sentiment, 0);
+            return sum / news.length;
+        }
+
+        async function fetchNews(topic) {
+            newsContainer.innerHTML = '<div class="loading">Fetching news summaries...</div>';
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/news?topic=${encodeURIComponent(topic)}`);
+                if (!response.ok) throw new Error('Failed to fetch news');
+
+                const news = await response.json();
+                const overallSentimentValue = calculateOverallSentiment(news);
+
+                overallSentiment.innerHTML = `
+                    <h2>Overall Sentiment: ${formatSentiment(overallSentimentValue)}</h2>
+                    <div class="sentiment-indicator" style="background-color: ${getSentimentColor(overallSentimentValue)}"></div>
+                `;
+
+                newsContainer.innerHTML = news.map(item => `
+                    <div class="news-item" onclick="window.open('${item.url}', '_blank')">
+                        <div class="news-summary">
+                            <span class="sentiment-indicator" style="background-color: ${getSentimentColor(item.sentiment)}"></span>
+                            ${item.summary}
+                        </div>
+                        <div class="news-sentiment">Sentiment: ${formatSentiment(item.sentiment)}</div>
+                        <div class="popover">
+                            Click to read the full article
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                newsContainer.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+            }
+        }
+
+        topicSelect.addEventListener('change', (e) => {
+            const topic = e.target.value;
+            if (topic) {
+                fetchNews(topic);
+            } else {
+                newsContainer.innerHTML = '';
+                overallSentiment.textContent = 'Select a topic to view news summaries';
+            }
+        });
+    </script>
+</body>
+</html>

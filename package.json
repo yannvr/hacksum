@@ -1,0 +1,29 @@
+{
+  "name": "hacksum",
+  "version": "1.0.0",
+  "description": "A real-time news summarization app powered by Grok AI",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "test": "bun test"
+  },
+  "keywords": [
+    "news",
+    "summarization",
+    "grok",
+    "ai",
+    "sentiment-analysis",
+    "bun"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "bun-types": "latest"
+  }
+}
