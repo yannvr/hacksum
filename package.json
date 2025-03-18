@@ -1,7 +1,7 @@
 {
   "name": "hacksum",
   "version": "1.0.0",
-  "description": "A real-time news summarization app powered by Grok AI",
+  "description": "A real-time news summarization app powered by AI",
   "main": "index.ts",
   "type": "module",
   "scripts": {
@@ -12,10 +12,12 @@
   "keywords": [
     "news",
     "summarization",
-    "grok",
     "ai",
     "sentiment-analysis",
-    "bun"
+    "real-time",
+    "nlp",
+    "news-aggregator",
+    "typescript"
   ],
   "author": "",
   "license": "MIT",
